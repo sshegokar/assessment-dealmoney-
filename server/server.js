@@ -1,34 +1,43 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const router = require('./routes/route')
-const fbrouter = require('./routes/fbroute')
 const mongodb = require('./mongodb')
 const session = require('express-session')
-redis = require('redis')
-client = redis.createClient()
+// redis = require('redis')
+// client = redis.createClient()
 require('dotenv').config()
+var route = express.Router();
+// var r = require('../client')
+
 const app = express()
 var expressValidator = require('express-validator')
 app.use(expressValidator())
 
-// parse requests of content-type-application/X-WWW-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }))
-
-// parse requests of content-type-application/json
+/// parse requests of content-type - application/json
 app.use(bodyParser.json())
-app.use('/', router)
-app.use('/', fbrouter)
+app.use('/', router);
+app.use(express.static(__dirname+'./client'));
+
+
+// define a simple route
+app.get('/', (req, res) => {
+    res.json({ "message": "Welcome to World of Program" });
+});
 
 app.use(session({
-    secret: 'creative developer',
+    secret: 'welcome',
     resave: true,
     saveUninitialized: true
 }))
 
 // listen for requests
-app.listen(process.env.PORT, () => {
+app.listen(3000, () => {
     console.log('Server is listening on port 3000')
 })
-// app.get('/', (req, res) => res.send('Hello World!'))
+
+app.use(bodyParser.urlencoded({ extended: true }))
+
+
+
 
 module.exports = app

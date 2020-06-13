@@ -6,15 +6,19 @@ import { HttpServiceService } from './httpService/http-service.service';
 })
 export class UserServiceService {
   constructor(private httpService: HttpServiceService) { }
-  register(obj) {
-    const userId = obj;
-    return this.httpService.getUserInfo(userId);
+
+  exportFile({}) {
+    const obj = {};
+    return this.httpService.exportFile(obj);
   }
-  addUser(obj) {
-    const data = {
-      data: obj
-    };
-    return this.httpService.getUserInfo(data);
+
+  uploadFile(files: any) {
+    const formData = new FormData();
+    // tslint:disable-next-line:prefer-for-of
+    for (let index = 0; index < files.length; index++) {
+      formData.append(files[index].title, files[index], files[index].filename);
+    }
+    return this.httpService.uploadFile(formData);
   }
 }
 

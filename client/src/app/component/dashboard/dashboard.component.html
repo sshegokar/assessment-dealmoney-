@@ -1,0 +1,19 @@
+
+<mat-card class="profile">
+<div class="form-group">
+  <label for="file" >File</label>
+  <input type="file"
+         id="file"
+         (change)="handleFileInput($event.target.files)">
+</div>
+  <button mat-button color="primary" style="
+  background-color: blue;margin-top: 4%"  (click)="onUpload();">Upload File</button>
+
+<button mat-button color="primary" style="
+margin-left: 71%;
+"  (click)="exportFile();">Download File</button>
+
+  </mat-card>
+
+
+

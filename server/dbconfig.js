@@ -1,3 +1,3 @@
 module.exports = {
-    url: 'mongodb://localhost:27017/FundooApp'
+    url: 'mongodb://localhost:27017/Application'
 }

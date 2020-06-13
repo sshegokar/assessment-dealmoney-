@@ -5,27 +5,19 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class HttpServiceService {
-
-
   baseUrl: string = environment.baseUrl;
   constructor(private http: HttpClient) { }
-  getUserInfo(userId) {
+  uploadFile(data) {
     const httpOptions = {
-      headers: new HttpHeaders({
-        Authorization: localStorage.getItem('access_token')
-      })
     };
-    return this.http.post(this.baseUrl + 'users/getUserInfo' + userId, httpOptions);
-  }
-  addUser(data) {
-    const httpOptions = {
-      headers: new HttpHeaders({
-        Authorization: localStorage.getItem('access_token')
-      })
-    };
-    return this.http.post(this.baseUrl + 'users/addUser', data.body, httpOptions);
+    return this.http.post(this.baseUrl + '/uploadFile', data, httpOptions);
   }
 
+  exportFile(data) {
+    const httpOptions = {
+    };
+    return this.http.put(this.baseUrl + 'users/resetPassword', data.body, httpOptions);
+  }
 }
 
 

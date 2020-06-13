@@ -1,206 +1,98 @@
 
-//require the usermodel
-var user = require('../model/usermodel')
+const user = require('../model/usermodel')
+const file = require('./fileupload');
+const _ = require('underscore');
 
-/**
- *@description:To store new user data and check it is an existed user or not 
- */
-exports.register = (body, callback) => {
-    try {
-        user.find({ 'email': body.email }, (err, data) => {
+
+
+exports.uploadBulk = (req, res, type, callback) => {
+    const promise = new Promise((resolve, reject) => {
+      let fileDetailsObject;
+      return new Promise((resolve, reject) => {
+       file.upload(req,
+          res,
+          (err, data) => {
             if (err) {
-                return callback(err);
-            } else if (data.length > 0) {
-                var response = { "error": true, "message": "Email already exists ", "errorCode": 404 };
-                return callback(response);
-            } else {
-                const newUser = new user({
-                    "firstname": body.firstname,
-                    "lastname": body.lastname,
-                    "email": body.email,
-                    "nationality": body.nationality,
-                    "mobileNumber": body.mobileNumber
-                });
-                newUser.save((err, result) => { //save the user in database
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        callback(null, result);
-                    }
-                })
+              reject(err);
             }
+            resolve(data);
+          });
+      })
+        .then(fileDetails => {
+          if (!fileDetails.files || Object.keys(fileDetails.files).length == 0) {
+            return Promise.reject(new RestError(404, `No files found`));
+          } else {
+              fileUpload.create({
+                  fileName:fileDetails.files.file[0].name,
+                  dateTime: new Date()
+              });
+            fileDetailsObject = fileDetails;
+            return file.loadFileAsBuffer(fileDetails.files.file[0].name
+            );
+          }
+        })
+        .then(bufferObject => {
+            if (_.size(bufferObject) > 0) {
+                return Promise.resolve(bufferObject);
+              } else {
+                return Promise.reject(new RestError(404, `No data found`));
+              }
+        })
+        .then(details => {
+            let promises =[];
+        _.each(details,function(data){
+            promises.push(user.create({
+             ts:data.ts,
+             val:data.val   
+            }));
         });
-    } catch (err) {
-        console.log(err);
+        return promise.all(promises);
+    })
+        .then(() => {
+          resolve({
+            success: true
+          });
+        })
+        .catch(reject);
+    });
+    if (callback !== null && typeof callback === 'function') {
+      promise.then(function (data) { return callback(null, data); }).catch(function (err) { return callback(err); });
+    } else {
+      return promise;
     }
-}
-exports.uploadFile = (req, callback) => {
-    try {
-        if (!req.file.originalname) {
-            callback('File Name not found')
-        }
-        if (!req.decoded.fbId || !req.decode.googleId) {
-            callback('User id not found')
-        }
-        let image = req.file.originalname ? req.file.originalname : req.file.originalname;
-        let fbId = req.decoded.fbId ? req.decoded.fbId : req.decoded.fbId;
-        let googleId = req.decode.googleId ? req.decode.googleId : req.decode.googleId;
-        if (image != null) {
-            var newimage = image;
+  };
+
+      exports.exportFileData = (req, res, callback) => {
+        const promise = new Promise(function (resolve, reject) {
+          let headers = [
+            { header: 'Ts', key: 'ts', width: 32 },
+            { header: 'Val', key: 'val', width: 32 },
+          ];
+          fileUpload.find()
+              .then(function (data) {
+                  res.append('fileName', 'FileData.xlsx');
+                  let excelSheet = excelUtils.createExcelReport(null, 'File', headers, data, null);
+                  return excelSheet.xlsx.write(res)
+                    .then(function () {
+                      res.end();
+                    });
+              })
+              .catch(function (err) {
+                console.error(err);
+                return callback(err);
+              });
+        });
+    
+        if (callback !== null && typeof callback === 'function') {
+          promise
+            .then(function (data) {
+              return callback(null, data);
+            })
+            .catch(function (err) {
+              return callback(err);
+            });
         } else {
-            callback('File Not Found')
+          return promise;
         }
-        if (fbId) {
-            user.findOneAndUpdate({ fbId: fbId }, { $set: { profileurl: req.file.location } },
-                (err, result) => {
-                    if (err) {
-                        callback(err)
-                    } else {
-                        return callback(null, req.file.location)
-                    }
-                });
-        }
-        if (googleId) {
-            user.findOneAndUpdate({ googleId: googleId }, { $set: { profileurl: req.file.location } },
-                (err, result) => {
-                    if (err) {
-                        callback(err)
-                    } else {
-                        return callback(null, req.file.location)
-                    }
-                });
-        }
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-/**
- *@description:Social Login with facebook
- *@purpose :login with facebook and store the user data in database 
- */
-
-exports.fbOauth = (req, callback) => {
-    try {
-        user.find({ fbID: req.profile.id }, (err, data) => {
-
-            if (err) {
-                return callback(err);
-            } else {
-                const newUser = new user({
-                    fbID: req.profile.id,
-                    fbUsername: req.profile.username,
-                    email: req.profile.emails[0].value,
-                    access_token: req.accessToken,
-                    "firstname": " ",
-                    "lastname": " ",
-                    "fbverify": "false",
-                    "profileurl": req.profile.photos[0].value
-                });
-
-                newUser.save((err, result) => { //save the user in database
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, result);
-                    }
-                })
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
-}
-/**
- *@description:Social Login with google
- *@purpose :login with google and store the user data in database 
- */
-
-exports.googleOauth = (req, callback) => {
-    try {
-        user.find({ googleId: req.profile.id }, (err, data) => {
-
-            if (err) {
-                return callback(err);
-            } else {
-                const newUser = new user({
-                    googleId: req.profile.id,
-                    Username: req.profile.username,
-                    email: req.profile.emails[0].value,
-                    access_token: req.accessToken,
-                    "firstname": " ",
-                    "lastname": "",
-                    "googleVerify": "false",
-                    "profileurl": req.profile.photos[0].value
-                });
-
-                newUser.save((err, result) => { //save the user in database
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, result);
-                    }
-                })
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
-}
-/**
- *@description:to verify fbuser using the user access_token and grant user to secure access delegation 
- */
-exports.fbVerify = (req, callback) => {
-
-    try {
-        console.log(req.decoded.id)
-        // updateOne() Updates a single document within the collection based on the filter.
-        user.updateOne({ _id: req.decoded.id }, { fbVerify: true }, (err, data) => {
-            if (err) {
-                return callback(err);
-            } else {
-                return callback(null, data);
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
-}
-/**
- *@description:to verify google user using the user access_token and grant user to secure access delegation 
- */
-exports.googleVerify = (req, callback) => {
-
-    try {
-        console.log(req.decoded.id)
-        // updateOne() Updates a single document within the collection based on the filter.
-        user.updateOne({ _id: req.decoded.id }, { googleVerify: true }, (err, data) => {
-            if (err) {
-                return callback(err);
-            } else {
-                return callback(null, data);
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-exports.getUserInfo = (userId, callback) => {
-
-    try {
-        user.findOne({ _id: userId }, (err, data) => {
-            if (err) {
-                return callback(err);
-            } else {
-                return callback(null, data);
-            }
-        });
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-
-
-
+      };
+    
