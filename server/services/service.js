@@ -1,57 +1,39 @@
 
 const user = require('../model/usermodel')
-const file = require('./fileupload');
 const _ = require('underscore');
+const excel = require('excel4node');
+const fs = require('fs');
+const file = require('./fileupload')
+const workbook = new excel.Workbook();
 
 
+function chunkArray(myArray, chunk_size){
+  var index = 0;
+  var arrayLength = myArray.length;
+  var tempArray = [];
+  
+  for (index = 0; index < arrayLength; index += chunk_size) {
+      myChunk = myArray.slice(index, index+chunk_size);
+      tempArray.push(myChunk);
+  }
 
-exports.uploadBulk = (req, res, type, callback) => {
+  return tempArray;
+}
+
+exports.uploadBulk = (req, res, callback) => {
     const promise = new Promise((resolve, reject) => {
-      let fileDetailsObject;
-      return new Promise((resolve, reject) => {
-       file.upload(req,
-          res,
-          (err, data) => {
-            if (err) {
-              reject(err);
-            }
-            resolve(data);
-          });
-      })
-        .then(fileDetails => {
-          if (!fileDetails.files || Object.keys(fileDetails.files).length == 0) {
-            return Promise.reject(new RestError(404, `No files found`));
-          } else {
-              fileUpload.create({
-                  fileName:fileDetails.files.file[0].name,
-                  dateTime: new Date()
-              });
-            fileDetailsObject = fileDetails;
-            return file.loadFileAsBuffer(fileDetails.files.file[0].name
-            );
-          }
-        })
-        .then(bufferObject => {
-            if (_.size(bufferObject) > 0) {
-                return Promise.resolve(bufferObject);
-              } else {
-                return Promise.reject(new RestError(404, `No data found`));
-              }
-        })
-        .then(details => {
-            let promises =[];
-        _.each(details,function(data){
-            promises.push(user.create({
-             ts:data.ts,
-             val:data.val   
-            }));
-        });
-        return promise.all(promises);
-    })
-        .then(() => {
+      let fileDetailsObject = req.body;
+      let arrayBatch = chunkArray(fileDetailsObject, 5000)
+      _.each(arrayBatch, function(array){
+          user.create(array);
+          console.log('inserted record'+array.length);
+      });
+      return Promise.resolve()
+        .then((data) => {
+         console.log('insterted all record')
           resolve({
             success: true
-          });
+          })
         })
         .catch(reject);
     });
@@ -62,18 +44,16 @@ exports.uploadBulk = (req, res, type, callback) => {
     }
   };
 
-      exports.exportFileData = (req, res, callback) => {
+      exports.exportFileData = (res, callback) => {
         const promise = new Promise(function (resolve, reject) {
           let headers = [
             { header: 'Ts', key: 'ts', width: 32 },
             { header: 'Val', key: 'val', width: 32 },
           ];
-          fileUpload.find()
+          user.find()
               .then(function (data) {
-                  res.append('fileName', 'FileData.xlsx');
-                  let excelSheet = excelUtils.createExcelReport(null, 'File', headers, data, null);
-                  return excelSheet.xlsx.write(res)
-                    .then(function () {
+                let excelSheet=file.createExcelReport(null, 'File', headers, data, null);
+                    return excelSheet.xlsx.write(res).then(function () {
                       res.end();
                     });
               })

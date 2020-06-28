@@ -21,5 +21,24 @@ module.exports.exportFile = (req, res) => {
     } catch (err) {
         console.log(err)
     }
+},
+
+module.exports.uploadBulk = (req, res) => {
+    try {
+        userService.uploadBulk(req, res, (err, data) => {
+            if (err) {
+                console.log(err)
+                return res.status(500).send({
+                    message: err
+                })
+            } else {
+                return res.status(200).send(data)
+            }
+        })
+
+        // }
+    } catch (err) {
+        console.log(err)
+    }
 }
 

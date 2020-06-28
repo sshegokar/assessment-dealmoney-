@@ -1,45 +1,10 @@
 
-const multer = require('multer')
+const _ = require('underscore')
+const Excel = require('exceljs');
+const XLSX = require('xlsx');
 
 
-/**
- *@description:upload profile picture of user in aws s3 using multer middleware  
- */
-const Storage = multer.diskStorage({
-    destination: function(req, file, callback) {
-        callback(null, "./fileContainer");
-    },
-    filename: function(req, file, callback) {
-        callback(null, file.originalname);
-    }
-});
-const upload = multer({
-    storage: Storage
-}).array("fileUploader", 3); //Field name and max count
-
-loadFileAsBuffer = function (fileName, callback) {
-    const promise = new Promise(function (resolve, reject) {
-      let buffers = [];
-      downloadStream('fileContainer', fileName)
-        .on('data', (chunk) => {
-          buffers.push(chunk);
-        })
-        .once('end', () => {
-          return resolve(Buffer.concat(buffers));
-        })
-        .once('error', (err) => {
-          return reject(err);
-        });
-    });
-
-    if (callback !== null && typeof callback === 'function') {
-      promise.then(function (data) { return callback(null, data); }).catch(function (err) { return callback(err); });
-    } else {
-      return promise;
-    }
-  };
-
-  createExcelReport= function (workbook, sheetName = 'Sheet 1', headers, records, options = { useStyles: true, useSharedStrings: true }) {
+  exports.createExcelReport= function (workbook, sheetName = 'Sheet 1', headers, records, options = { useStyles: true, useSharedStrings: true }) {
     workbook = workbook || new Excel.Workbook(options);
     let worksheet = workbook.addWorksheet(sheetName);
     worksheet.getRow(6).values = _.pluck(headers, 'header');
@@ -62,6 +27,5 @@ loadFileAsBuffer = function (fileName, callback) {
       }
     });
     return workbook;
-  },
+  }
 
-module.exports = upload;
