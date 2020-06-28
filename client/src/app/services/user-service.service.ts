@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpServiceService } from './httpService/http-service.service';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,13 +13,10 @@ export class UserServiceService {
     return this.httpService.exportFile(obj);
   }
 
-  uploadFile(files: any) {
+  uploadFile(files: File) {
     const formData = new FormData();
-    // tslint:disable-next-line:prefer-for-of
-    for (let index = 0; index < files.length; index++) {
-      formData.append(files[index].title, files[index], files[index].filename);
-    }
-    return this.httpService.uploadFile(formData);
+    formData.append('fileKey', files, files.name);
+    return this.httpService.uploadFile(files);
   }
 }
 

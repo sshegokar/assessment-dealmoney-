@@ -20,7 +20,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
   }
-  
+
 handleFileInput(event: any) {
     this.fileToUpload = event.item(0);
     if (!this.fileToUpload) {
@@ -43,7 +43,8 @@ onUpload() {
     if (this.fileToUpload) {
       const reader = new FileReader();
       reader.readAsDataURL(this.fileToUpload); // read file as data url
-      reader.onload = (event) => { // called once readAsDataURL is completed
+      reader.onload = (event) => {
+        console.log(event);// called once readAsDataURL is completed
         this.userService.uploadFile(this.fileToUpload).toPromise()
           .then(() => {
             this.snackBar.open('File Uploaded Successfully', 'End Now', { duration: 3000 });
@@ -52,6 +53,7 @@ onUpload() {
             this.snackBar.open(error.error.message, 'End Now', { duration: 3000 });
           });
     };
+  // tslint:disable-next-line:align
   } else {
     this.snackBar.open('Invalid File', 'End Now', { duration: 3000 });
   }
