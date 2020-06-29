@@ -4,6 +4,7 @@ const _ = require('underscore');
 const excel = require('excel4node');
 const fs = require('fs');
 const file = require('./fileupload')
+const Promise = require('bluebird');
 const workbook = new excel.Workbook();
 
 
@@ -19,17 +20,18 @@ function chunkArray(myArray, chunk_size){
 
   return tempArray;
 }
+function processBatch(batchItem) {
+    return user.create(batchItem);
+};
 
 exports.uploadBulk = (req, res, callback) => {
     const promise = new Promise((resolve, reject) => {
       let fileDetailsObject = req.body;
-      let arrayBatch = chunkArray(fileDetailsObject, 5000)
-      _.each(arrayBatch, function(array){
-          user.create(array);
-          console.log('inserted record'+array.length);
-      });
-      return Promise.resolve()
-        .then((data) => {
+      let arrayBatch = chunkArray(fileDetailsObject, 1000)
+      return Promise.map(arrayBatch, processBatch, { concurrency: 1 })
+      .then(function() {
+        console.log("done");
+       }).then((data) => {
          console.log('insterted all record')
           resolve({
             success: true
