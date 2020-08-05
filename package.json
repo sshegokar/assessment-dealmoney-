@@ -19,7 +19,7 @@
     "cors": "^2.5.2",
     "dotenv": "^7.0.0",
     "env": "0.0.2",
-    "express-fileupload": "^1.1.7-alpha.3",
+    "express-fileupload": "^1.1.9",
     "express-flash": "0.0.2",
     "express-session": "^1.16.1",
     "helmet": "^3.10.0",
