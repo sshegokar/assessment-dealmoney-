@@ -47,7 +47,7 @@
     "devDependencies": {
         "async": "^2.6.2",
         "aws-sdk": "^2.441.0",
-        "axios": "^0.18.1",
+        "axios": "^0.21.1",
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.18.3",
         "chai": "^3.5.0",
