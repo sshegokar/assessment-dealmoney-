@@ -41,7 +41,7 @@
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^3.0.0",
     "supertest": "^4.0.2",
-    "underscore": "^1.10.2",
+    "underscore": "^1.12.1",
     "xlsx-to-json": "^0.3.0"
   },
   "devDependencies": {
