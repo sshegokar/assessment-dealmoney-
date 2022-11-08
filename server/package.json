@@ -64,7 +64,7 @@
         "json5": "^2.1.0",
         "jsonwebtoken": "^8.5.0",
         "jwt-simple": "^0.5.5",
-        "mocha": "^2.5.3",
+        "mocha": "^10.1.0",
         "mongodb-schema": "^8.2.3",
         "mongoose": "^5.4.15",
         "mongoose-url-shortener": "^1.0.1",
