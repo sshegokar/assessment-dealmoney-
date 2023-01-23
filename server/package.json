@@ -51,7 +51,7 @@
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.18.3",
         "chai": "^3.5.0",
-        "chai-http": "^2.0.1",
+        "chai-http": "^4.3.0",
         "cors": "^2.8.5",
         "dotenv": "^7.0.0",
         "event-emitter": "^0.3.5",
